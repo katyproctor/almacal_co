@@ -35,15 +35,21 @@ def plot_uv(data_path,uid, spw):
             expformat = 'png', exprange = 'all', overwrite=True)
 
 def get_uv_stats(data_path, uid):
+    '''Beasline statistics'''
+    uvstats = au.getBaselineStats(data_path+uid)
+    
+    # save select stats
+    n_bls = uvstats[0]
+    min_bl = uvstats[1]
+    max_bl = uvstats[2]
+    med_bl = uvstats[3]
+    mean_bl = uvstats[4]
+    stddev_bl = uvstats[5]
+    
+    25pc_bl = uvstat[7]
+    75pc_bl = uvstats[9]
 
-    uvstats = visstat(data_path+uid, axis='uvrange', spw = '0') 
-    min_bl = uvstats['DATA_DESC_ID=0']['min']
-    max_bl = uvstats['DATA_DESC_ID=0']['max']
-    med_bl = uvstats['DATA_DESC_ID=0']['median']
-    mean_bl = uvstats['DATA_DESC_ID=0']['mean']
-    stddev_bl = uvstats['DATA_DESC_ID=0']['stddev']
-
-    return [min_bl, max_bl, med_bl, mean_bl, stddev_bl]
+    return [n_bls, min_bl, max_bl, med_bl, mean_bl, stddev_bl, 25pc_bl, 75pc_bl]
    
 def get_img_stats(data_path,imgname):
     '''Get rms, major and minor beam axis of clean image'''
@@ -63,7 +69,10 @@ def output_to_csv(stats):
     with open("/home/kproctor/summary_stats_all.csv", "w") as f:
         writer = csv.writer(f)
         writer.writerow(["image", "rms", "maj_beam", "units",
-                    "min_beam", "units"])
+                    "min_beam", "units", 
+                         "n_bls", "min_bl", "max_bl", 
+                         "med_bl", "mean_bl", "stddev_bl", 
+                         "25pc_bl", "75pc_bl"])
         writer.writerows(stats)
 
 def spw_list_to_str(spw_list):
