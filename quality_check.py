@@ -46,10 +46,10 @@ def get_uv_stats(data_path, uid):
     mean_bl = uvstats[4]
     stddev_bl = uvstats[5]
     
-    25pc_bl = uvstat[7]
-    75pc_bl = uvstats[9]
+    bl_25pc = uvstat[7]
+    bl_75pc = uvstats[9]
 
-    return [n_bls, min_bl, max_bl, med_bl, mean_bl, stddev_bl, 25pc_bl, 75pc_bl]
+    return [n_bls, min_bl, max_bl, med_bl, mean_bl, stddev_bl, bl_25pc, bl_75pc]
    
 def get_img_stats(data_path,imgname):
     '''Get rms, major and minor beam axis of clean image'''
