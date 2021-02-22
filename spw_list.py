@@ -1,6 +1,3 @@
-# Modified version of code written by Roland
-# Finds relevant spws, given uid list and line emission frequency
-
 import os
 import re
 import json
@@ -32,6 +29,16 @@ def read_spw(vis):
             spw_specrange[key] = [freq_min, freq_max]
 
     return spw_specrange
+
+
+def calc_obs_freq(restfreq, zsource):
+
+    f = restfreq/(zsource + 1)
+
+    low_lim = round(f,1) - 0.5
+    high_lim = round(f,1) + 0.5
+
+    return [low_lim,high_lim]
 
 
 def spw_stat(objfolder, vis=None, savedata=False, spw_list_path=None, z=0, lines=None, lines_names=None, debug=False):
@@ -113,12 +120,14 @@ def create_spw_list(ms_folder, linerange, savedata=False, spw_list_path = None):
 
 	spw_stat_list = spw_stat(objfolder=ms_folder)
 	spw_list = {'uid':[], 'spwid':[]}
+        # TODO: ideally this would not be manual
+        band = 'B7'
 
 	print('Read in SPW frequency ranges...')
-	for i in range(0, len(spw_stat_list['B3']['name'])):
-	    name = spw_stat_list['B3']['name'][i]
-	    freqs = spw_stat_list['B3']['freq'][i]
-	    spwid = spw_stat_list['B3']['spwid'][i]
+	for i in range(0, len(spw_stat_list[band]['name'])):
+	    name = spw_stat_list[band]['name'][i]
+	    freqs = spw_stat_list[band]['freq'][i]
+	    spwid = spw_stat_list[band]['spwid'][i]
 	    avail_spws = []
 	    spw_avail = False
 
@@ -143,6 +152,7 @@ def create_spw_list(ms_folder, linerange, savedata=False, spw_list_path = None):
 	
 	print('SPW List:')
 	print(spw_list)
+        print(len(spw_list['spwid']))
 
 	if savedata:
 		print('Saving SPW list in ' + str(spw_list_path))
@@ -161,20 +171,30 @@ def read_json(file):
 def main():
 
 	# Set these two variables to the directory of the ms files
-	ms_file_path = '/scratch-sata/gcalistr/ALMACAL/J1229+0203/katy_test'
-	# Specify the range of the CO line [lower limit, upper limit] in GHz
-	linerange=[99.,100.]
+	ms_file_path = '/scratch-sata/gcalistr/ALMACAL/J1229+0203/'
+	# Specify the range of the CO line [lower limit, upper limit] in GHz - or use calc_obs_freq to get 1GHz range around the observed line freq
+	#linerange=[99.,100.]
+        
+        # co rest frequencies
+        co1_0=115.27
+        co2_1=230.54
+        co3_2=345.80
+        co4_3=461.04
+        co5_4=576.27
+        co6_5=691.47
+
+        linerange = calc_obs_freq(restfreq = co3_2, zsource = 0.158)
+        print(linerange)
 
 	# Use this part instead if you want the SPW list saved, will read the SPW list from that file too afterwards
-	spw_list_path = 'husemann_extra.txt'
+	spw_list_path = 'husemann_co3_2.txt'
 	create_spw_list(ms_folder=ms_file_path, linerange=linerange, savedata=True, spw_list_path=spw_list_path)
-	spw_list_file = 'husemann_extra.txt'
-	spw_data = read_json(spw_list_file)
+#	spw_list_file = 'husemann_co3_2.txt'
+#	spw_data = read_json(spw_list_file)
 
-	#spw_data = create_spw_list(ms_folder=ms_file_path, linerange=linerange)
-
-	uid_list = spw_data['uid']
-	spw_list = spw_data['spwid']
+#	uid_list = spw_data['uid']
+#	spw_list = spw_data['spwid']
+        
         
         
 if __name__ == "__main__":
