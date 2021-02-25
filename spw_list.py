@@ -32,15 +32,38 @@ def read_spw(vis):
 
 
 def calc_obs_freq(restfreq, zsource):
-
+    '''Calculate observed frequency of line emission'''
     f = restfreq/(zsource + 1)
 
     low_lim = round(f,1) - 0.5
     high_lim = round(f,1) + 0.5
 
-    return [low_lim,high_lim]
+    return f, [low_lim,high_lim]
 
+def calc_band(obsfreq):
+    '''Calculate ALMA band given the observed line frequency'''
+    band3 = [84,116]
+    band4 = [125,163]
+    band5 = [163,211]
+    band6 = [211,275]
+    band7 = [275,373]
+    band8 = [385,500]
+    band9 = [602,720]
+    band10 = [787,950]
 
+    bands = [band3,band4,band5,band6,band7,band8,band9,band10]
+    
+    # find band that frequency lies in 
+    band_ind = [ind for ind, band in enumerate(bands) if band[0] <= obsfreq <= band[1]]
+    if band_ind:
+        band_number = band_ind[0] + 3 # converts index of list to actual band number
+    
+    else:
+        print('No overlap')
+        band_number = []
+        
+    return band_number
+    
 def spw_stat(objfolder, vis=None, savedata=False, spw_list_path=None, z=0, lines=None, lines_names=None, debug=False):
 
     spw_list = {'B3':{'name':[], 'time':[], 'freq':[], 'spwid':[]},
@@ -116,12 +139,11 @@ def findOverlap(a, b, rtol = 1e-03, atol = 1e-03, equal_nan = False):
     return overlap_indexes
 
 
-def create_spw_list(ms_folder, linerange, savedata=False, spw_list_path = None):
+def create_spw_list(ms_folder, linerange, band, savedata=False, spw_list_path = None):
 
 	spw_stat_list = spw_stat(objfolder=ms_folder)
 	spw_list = {'uid':[], 'spwid':[]}
-        # TODO: ideally this would not be manual
-        band = 'B7'
+        band = 'B'+str(band)
 
 	print('Read in SPW frequency ranges...')
 	for i in range(0, len(spw_stat_list[band]['name'])):
@@ -170,7 +192,7 @@ def read_json(file):
 
 def main():
 
-	# Set these two variables to the directory of the ms files
+	# Set variable to the directory of the ms files
 	ms_file_path = '/scratch-sata/gcalistr/ALMACAL/J1229+0203/'
 	# Specify the range of the CO line [lower limit, upper limit] in GHz - or use calc_obs_freq to get 1GHz range around the observed line freq
 	#linerange=[99.,100.]
@@ -182,19 +204,30 @@ def main():
         co4_3=461.04
         co5_4=576.27
         co6_5=691.47
+        
+        # HCN
+        hcn2_1=177.26
+        hcn3_2=265.89
+        hcn4_3=354.51
+        hcn5_4=443.12
+        hcn6_5=531.72
+        hcn7_6=620.30
+        hcn8_7=708.88
+        hcn9_8=797.43
+        hcn10_9=885.97
 
-        linerange = calc_obs_freq(restfreq = co3_2, zsource = 0.158)
-        print(linerange)
+        fobs, linerange = calc_obs_freq(restfreq = hcn7_6, zsource = 0.158)
+        print('Frequency of line: ', fobs)
+        band = calc_band(fobs)
 
 	# Use this part instead if you want the SPW list saved, will read the SPW list from that file too afterwards
-	spw_list_path = 'husemann_co3_2.txt'
-	create_spw_list(ms_folder=ms_file_path, linerange=linerange, savedata=True, spw_list_path=spw_list_path)
+	spw_list_path = 'J1229+0203_hcn7_6.txt'
+	create_spw_list(ms_folder=ms_file_path, linerange=linerange, band = band, savedata=True, spw_list_path=spw_list_path)
 #	spw_list_file = 'husemann_co3_2.txt'
 #	spw_data = read_json(spw_list_file)
 
 #	uid_list = spw_data['uid']
 #	spw_list = spw_data['spwid']
-        
         
         
 if __name__ == "__main__":
